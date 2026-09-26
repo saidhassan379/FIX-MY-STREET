@@ -28,7 +28,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 
-export async function checkPossibleDuplicate(
+// Find how many existing reports appear to describe the same issue
+export async function getDuplicateInfo(
     latitude,
     longitude,
     category
@@ -48,6 +49,8 @@ export async function checkPossibleDuplicate(
         [category]
     );
 
+    let duplicateCount = 0;
+
     for (const report of result.rows) {
 
         const distance = calculateDistance(
@@ -58,9 +61,34 @@ export async function checkPossibleDuplicate(
         );
 
         if (distance <= 50) {
-            return true;
+            duplicateCount++;
         }
     }
 
-    return false;
+    return {
+        possibleDuplicate: duplicateCount > 0,
+
+        // Existing matching reports
+        duplicateCount,
+
+        // Existing matching reports + the new citizen's report
+        totalReportsForIssue: duplicateCount + 1
+    };
+}
+
+
+// Keep old function available so existing code does not break
+export async function checkPossibleDuplicate(
+    latitude,
+    longitude,
+    category
+) {
+
+    const info = await getDuplicateInfo(
+        latitude,
+        longitude,
+        category
+    );
+
+    return info.possibleDuplicate;
 }

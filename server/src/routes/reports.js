@@ -2,7 +2,9 @@ import express from "express";
 import multer from "multer";
 import { analyzeCivicIssue } from "../services/gemini.js";
 import pool from "../db/pool.js";
-import { checkPossibleDuplicate } from "../services/duplicate.js";
+
+import { getDuplicateInfo } from "../services/duplicate.js";
+import { getTypicalResolutionTime } from "../services/resolutionTime.js";
 import { getDepartment } from "../services/department.js";
 
 
@@ -69,13 +71,16 @@ router.post(
             analysis.safety_risk = Boolean(analysis.safety_risk);
 
             // 4. Duplicate detection comes later
-            const possibleDuplicate =
-                await checkPossibleDuplicate(
-                    latitudeNumber,
-                    longitudeNumber,
+            const duplicateInfo =
+                await getDuplicateInfo(
+                    latitude,
+                    longitude,
                     analysis.category
                 );
 
+            const possibleDuplicate = duplicateInfo.possibleDuplicate;
+            const duplicateCount = duplicateInfo.duplicateCount;
+            const totalReportsForIssue = duplicateInfo.totalReportsForIssue;
             // 5. Determine department
             const department = getDepartment(
                 analysis.category
@@ -153,9 +158,14 @@ router.post(
             const savedReport = result.rows[0];
 
             // 11. Return it
+
             res.status(201).json({
                 success: true,
-                report: savedReport
+                report: {
+                    ...savedReport,
+                    duplicate_count: duplicateCount,
+                    total_reports_for_issue: totalReportsForIssue
+                }
             });
 
         } catch (error) {
@@ -297,9 +307,33 @@ router.get("/:report_id", async (req, res) => {
             });
         }
 
+        const report = result.rows[0];
+
+        const duplicateInfo = await getDuplicateInfo(
+            Number(report.latitude),
+            Number(report.longitude),
+            report.category
+        );
+
+        // getDuplicateInfo includes this report itself because it is
+        // already stored in the database.
+        const totalReportsForIssue = Math.max(
+            1,
+            duplicateInfo.duplicateCount
+        );
+
+        const resolutionInfo =
+            await getTypicalResolutionTime(report.category);
+
         res.json({
             success: true,
-            report: result.rows[0]
+            report: {
+                ...report,
+                duplicate_count: Math.max(0, totalReportsForIssue - 1),
+                total_reports_for_issue: totalReportsForIssue,
+                median_resolution_ms: resolutionInfo.medianResolutionMs,
+                resolution_sample_size: resolutionInfo.resolvedReportCount
+            }
         });
 
     } catch (error) {
