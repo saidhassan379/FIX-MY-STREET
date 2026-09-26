@@ -1,0 +1,130 @@
+# CivicFix Integration
+
+**Owner:** Said Hassan Ali
+
+## Purpose
+
+Connect Kang's citizen interface, Indhar's backend, and Eni's municipal dashboard into one working CivicFix application.
+
+## My Responsibilities
+
+* Shared configuration
+* Environment variables
+* Gemini API configuration
+* Database configuration
+* Auth0 configuration
+* API/service connections
+* Final integration
+* Deployment
+* QR code destination
+* End-to-end testing
+
+## Team Responsibilities
+
+**Kang — Citizen Interface**
+
+* Report an infrastructure problem
+* Receive report ID
+* View report status and timeline
+
+**Indhar — Backend**
+
+* Receive reports
+* Gemini image analysis
+* Duplicate detection
+* Store and process report data
+* Provide API endpoints
+
+**Eni — Municipal Dashboard**
+
+* View reports
+* View report details
+* Update report status
+* View status history
+
+**Said — Integration**
+
+* Connect all three components
+* Configure shared services
+* Test the complete application
+
+## Data Contract
+
+Every component must use these exact fields:
+
+```text
+report_id
+photo
+latitude
+longitude
+description
+category
+confidence
+severity
+safety_risk
+possible_duplicate
+department
+status
+created_at
+status_history
+```
+
+## Status Values
+
+```text
+REPORTED
+VERIFIED
+ASSIGNED
+INVESTIGATING
+SCHEDULED
+RESOLVED
+```
+
+## AI Categories
+
+```text
+pothole
+broken_streetlight
+damaged_sidewalk
+blocked_accessibility_ramp
+damaged_sign
+overflowing_garbage_bin
+road_obstruction
+unknown
+```
+
+## Application Flow
+
+```text
+QR Code
+→ Citizen Interface
+→ Backend
+→ Gemini Analysis
+→ Database
+→ Department Assignment
+→ Municipal Dashboard
+→ Status Update
+→ Database
+→ Citizen Tracking
+```
+
+## Security
+
+* API keys and secrets must never be committed to GitHub.
+* Frontend code must not contain private API keys.
+* Shared secrets are managed through environment variables.
+
+## Final Test
+
+The complete application must successfully:
+
+1. Open through the QR code.
+2. Submit a citizen report.
+3. Send the report to the backend.
+4. Analyze the photo with Gemini.
+5. Store the report data.
+6. Assign a department.
+7. Display the report on the municipal dashboard.
+8. Update the status.
+9. Show the updated status to the citizen.
+10. Show the complete status history.
