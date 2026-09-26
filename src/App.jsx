@@ -97,6 +97,36 @@ function formatLabel(value) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function formatDuration(ms) {
+  if (ms == null) {
+    return "Not enough data yet";
+  }
+
+  const totalMinutes = Math.round(ms / (1000 * 60));
+
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  if (days > 0) {
+    if (hours === 0) {
+      return `${days} day${days === 1 ? "" : "s"}`;
+    }
+
+    return `${days} day${days === 1 ? "" : "s"} ${hours} hr${hours === 1 ? "" : "s"}`;
+  }
+
+  if (hours > 0) {
+    if (minutes === 0) {
+      return `${hours} hr${hours === 1 ? "" : "s"}`;
+    }
+
+    return `${hours} hr${hours === 1 ? "" : "s"} ${minutes} min`;
+  }
+
+  return `${minutes} min`;
+}
+
 
 
 
@@ -12971,73 +13001,33 @@ function Tracking() {
 
 
             <Detail
-
-
-
-
-
-
-
               label="Responsible Department"
-
-
-
-
-
-
-
               value={report.department}
-
-
-
-
-
-
-
             />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             <Detail
-
-
-
-
-
-
-
-              label="Status"
-
-
-
-
-
-
-
-              value={report.status}
-
-
-
-
-
-
-
+              label="Community Reports"
+              value={
+                report.total_reports_for_issue === 1
+                  ? "1 matching report nearby"
+                  : `${report.total_reports_for_issue} matching reports nearby`
+              }
             />
 
+            <Detail
+              label="Typical Resolution Time"
+              value={
+                report.resolution_sample_size > 0
+                  ? `${formatDuration(report.median_resolution_ms)} (${report.resolution_sample_size} resolved ${report.resolution_sample_size === 1 ? "report" : "reports"
+                  })`
+                  : "Not enough data yet"
+              }
+            />
 
-
+            <Detail
+              label="Status"
+              value={report.status}
+            />
 
 
 
