@@ -30,7 +30,7 @@
 
 
 
-\*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}button,input,select{font:inherit}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}button,input,select{font:inherit}
 
 
 
@@ -102,6 +102,14 @@
 
 
 
+
+/* CivicFix priority / hazard additions */
+.hazard-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px;padding:15px 17px;border:1px solid #fecaca;background:#fff7f7;border-radius:12px}
+.hazard-banner strong{color:#991b1b}.hazard-banner span{font-size:12px;color:#7f1d1d}
+.hazard-count{font-size:24px!important;font-weight:900;color:#b91c1c!important}
+.critical{color:#b91c1c;font-weight:900}.risk-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:900;background:#fee2e2;color:#991b1b}
+tr.critical-row{background:#fff7f7}tr.critical-row:hover{background:#feecec}
+
 </style>
 
 
@@ -166,7 +174,12 @@
 
 
 
- <div class="cards" id="cards"></div>
+ <div class="hazard-banner" id="hazardBanner">
+<div><strong>⚠ Severe safety hazards</strong><br><span>High/critical safety-risk reports requiring priority review</span></div>
+<span class="hazard-count" id="hazardCount">0</span>
+</div>
+
+<div class="cards" id="cards"></div>
 
 
 
@@ -306,7 +319,7 @@ function normalizeReport(r) {
 
     severity: r.severity ?? "Low",
 
-    safety_risk: r.safety_risk ?? "Low",
+    safety_risk: r.safety_risk === true || r.safety_risk === "true" || r.safety_risk === 1,
 
     possible_duplicate: Boolean(r.possible_duplicate),
 
@@ -370,28 +383,21 @@ async function loadReports() {
 
 
 
-const row = (r, full=false) => `<tr class="click" data-id="${esc(r.report_id)}">
+const isPriorityHazard = r =>
+  Boolean(r.safety_risk) &&
+  ["high","critical"].includes(String(r.severity || "").toLowerCase());
 
-  <td>${r.photo ? `<img class="thumb" src="${esc(r.photo)}" alt="">` : "—"}</td>
-
-  <td><b>${esc(r.report_id)}</b></td>
-
-  <td>${esc(r.category)}</td>
-
-  <td>${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}</td>
-
-  <td class="severity ${String(r.severity).toLowerCase()}">${esc(r.severity)}</td>
-
-  ${full ? `<td>${esc(r.safety_risk)}</td>` : ""}
-
-  <td>${esc(r.department)}</td>
-
-  <td>${badge(r.status)}</td>
-
-  <td>${esc(r.created_at)}</td>
-
+const row = (r, full=false) => `<tr class="click ${isPriorityHazard(r) ? "critical-row" : ""}" data-id="${esc(r.report_id)}">
+  <td>${r.photo ? `<img class="thumb" src="${esc(r.photo)}" alt="">` : "—"}</td>
+  <td><b>${esc(r.report_id)}</b>${isPriorityHazard(r) ? ` <span class="risk-pill">⚠ PRIORITY</span>` : ""}</td>
+  <td>${esc(r.category)}</td>
+  <td>${r.latitude.toFixed(4)}, ${r.longitude.toFixed(4)}</td>
+  <td class="severity ${String(r.severity).toLowerCase()}">${esc(String(r.severity).toUpperCase())}</td>
+  ${full ? `<td>${r.safety_risk ? `<span class="risk-pill">⚠ YES</span>` : "No"}</td>` : ""}
+  <td>${esc(r.department)}</td>
+  <td>${badge(r.status)}</td>
+  <td>${esc(r.created_at)}</td>
 </tr>`;
-
 
 
 function counts() {
@@ -403,6 +409,10 @@ function counts() {
 
 
 function renderCards() {
+  const priorityHazards = reports.filter(isPriorityHazard).length;
+  const hazardCount = document.getElementById("hazardCount");
+  if (hazardCount) hazardCount.textContent = priorityHazards;
+
 
   const c = counts();
 
@@ -434,7 +444,7 @@ function renderDash() {
 
   document.getElementById("dashRows").innerHTML =
 
-    reports.length ? reports.slice(0,5).map(r => row(r)).join("") :
+    reports.length ? reports.slice().sort((a,b) => Number(isPriorityHazard(b)) - Number(isPriorityHazard(a))).slice(0,5).map(r => row(r)).join("") :
 
     `<tr><td colspan="8"><div class="empty">No reports found.</div></td></tr>`;
 
@@ -526,7 +536,8 @@ async function openReport(id) {
 
   document.getElementById("subtitle").textContent = `${r.category} · ${r.created_at}`;
 
-  document.getElementById("topStatus").innerHTML = badge(r.status);
+  document.getElementById("topStatus").innerHTML =
+    `${isPriorityHazard(r) ? '<span class="risk-pill">⚠ CRITICAL SAFETY REVIEW</span> ' : ''}${badge(r.status)}`;
 
   document.getElementById("photo").src = r.photo || "";
 

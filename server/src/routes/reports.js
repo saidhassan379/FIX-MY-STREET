@@ -62,6 +62,12 @@ router.post(
                 description
             );
 
+            // Normalize AI output before routing/storing it.
+            analysis.category = String(analysis.category || "unknown").toLowerCase();
+            analysis.severity = String(analysis.severity || "low").toLowerCase();
+            analysis.confidence = Math.max(0, Math.min(1, Number(analysis.confidence) || 0));
+            analysis.safety_risk = Boolean(analysis.safety_risk);
+
             // 4. Duplicate detection comes later
             const possibleDuplicate =
                 await checkPossibleDuplicate(
