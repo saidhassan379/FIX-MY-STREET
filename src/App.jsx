@@ -1,5 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getReport as getReportFromBackend, submitReport as submitReportToBackend } from "./api";
 
@@ -119,6 +118,83 @@ function Report() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const recognitionRef = useRef(null);
+  const voiceBaseRef = useRef("");
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
+   useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setVoiceSupported(false);
+      return;
+    }
+
+    setVoiceSupported(true);
+
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-CA";
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceError("");
+    };
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript + " ";
+      }
+
+      transcript = transcript.trim();
+
+      const combined = [voiceBaseRef.current, transcript]
+        .filter(Boolean)
+        .join(" ");
+
+      setDescription(combined.slice(0, 500));
+    };
+
+    recognition.onerror = (event) => {
+      setIsListening(false);
+
+      const messages = {
+        "not-allowed":
+          "Microphone access was blocked. Please allow microphone access and try again.",
+        "service-not-allowed":
+          "Voice input is not available in this browser.",
+        "audio-capture":
+          "No microphone was detected. Please check your microphone.",
+        "no-speech":
+          "No speech was detected. Please try speaking again.",
+        network:
+          "Voice recognition could not connect. Please try again.",
+      };
+
+      setVoiceError(
+        messages[event.error] ||
+          "Voice input could not be started. Please try again or type your description."
+      );
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.abort();
+      recognitionRef.current = null;
+    };
+  }, []);
+
   function useLocation() {
     setError("");
     if (!navigator.geolocation) {
@@ -138,6 +214,27 @@ function Report() {
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  }
+  function startVoiceInput() {
+    if (!recognitionRef.current || isListening) return;
+
+    setVoiceError("");
+
+    // Keep anything the user already typed.
+    voiceBaseRef.current = description.trim();
+
+    try {
+      recognitionRef.current.start();
+    } catch {
+      setVoiceError("Voice input could not be started. Please try again.");
+    }
+  }
+
+  function stopVoiceInput() {
+    if (!recognitionRef.current) return;
+
+    recognitionRef.current.stop();
+    setIsListening(false);
   }
 
   function handlePhoto(event) {
@@ -258,16 +355,107 @@ function Report() {
               </div>
             </section>
 
-            <section className={`report-card report-step-card ${descriptionReady ? "complete" : ""}`}>
-              <div className="step-heading">
-                <div className="step-number">3</div>
-                <div><span className="step-kicker">OPTIONAL</span><h2>Describe what you noticed</h2><p>A few words can give useful context to your report.</p></div>
-                {descriptionReady && <span className="step-check">✓ Added</span>}
-              </div>
+           <section className={`report-card report-step-card ${descriptionReady ? "complete" : ""}`}>
+  <div className="step-heading">
+    <div className="step-number">3</div>
 
-              <textarea id="description" name="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Example: Large pothole near the crosswalk. It is difficult for cyclists to avoid." rows="5" maxLength="500" />
-              <div className="character-count">{description.length}/500</div>
-            </section>
+    <div>
+      <span className="step-kicker">OPTIONAL</span>
+      <h2>Describe what you noticed</h2>
+      <p>You can type, speak, use both, or skip this step.</p>
+    </div>
+
+    {descriptionReady && <span className="step-check">✓ Added</span>}
+  </div>
+
+  <div className="voice-input-panel">
+    <div className="voice-controls">
+      {!voiceSupported ? (
+        <button
+          type="button"
+          className="voice-button"
+          disabled
+          aria-disabled="true"
+        >
+          🎙️ Voice input unavailable
+        </button>
+      ) : isListening ? (
+        <button
+          type="button"
+          className="voice-button listening"
+          onClick={stopVoiceInput}
+          aria-pressed="true"
+        >
+          ⏹ Stop listening
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="voice-button"
+          onClick={startVoiceInput}
+          aria-pressed="false"
+        >
+          🎙️ Speak instead
+        </button>
+      )}
+
+      {isListening && (
+        <span className="voice-status" aria-live="polite">
+          <span className="voice-status-dot" />
+          Listening…
+        </span>
+      )}
+    </div>
+
+    <p className="voice-help">
+      Speak naturally about what you noticed. Your words will appear below
+      and you can edit them before submitting.
+    </p>
+  </div>
+
+  <label htmlFor="description">
+    Description <span className="optional-label">(optional)</span>
+  </label>
+
+  <textarea
+    id="description"
+    name="description"
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+    placeholder={
+      isListening
+        ? "Listening… your description will appear here."
+        : "Example: Large pothole near the crosswalk. It is difficult for cyclists to avoid."
+    }
+    rows="5"
+    maxLength="500"
+    disabled={isListening}
+  />
+
+  <div className="description-footer">
+    <span>{description.length}/500 characters</span>
+
+    {description && !isListening && (
+      <button
+        type="button"
+        className="clear-description"
+        onClick={() => {
+          setDescription("");
+          voiceBaseRef.current = "";
+          setVoiceError("");
+        }}
+      >
+        Clear description
+      </button>
+    )}
+  </div>
+
+  {voiceError && (
+    <p className="voice-error" role="alert">
+      {voiceError}
+    </p>
+  )}
+</section>
 
             {error && <div className="error-box report-error" role="alert">⚠ {error}</div>}
 
