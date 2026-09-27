@@ -1052,37 +1052,75 @@ function Layout({ children }) {
 
 function Home() {
 
+  const [nearbyReports, setNearbyReports] = useState([]);
+  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [nearbyError, setNearbyError] = useState("");
+  const [userLocation, setUserLocation] = useState(null);
 
+  async function findNearbyIssues() {
+    setNearbyError("");
+    setNearbyLoading(true);
 
+    if (!navigator.geolocation) {
+      setNearbyError("Location is not supported by this browser.");
+      setNearbyLoading(false);
+      return;
+    }
 
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
+          setUserLocation({
+            lat,
+            lng
+          });
 
+          const response = await fetch(
+            `http://localhost:5000/api/reports/nearby?lat=${lat}&lng=${lng}&radius=1000`
+          );
+
+          if (!response.ok) {
+            throw new Error("Could not load nearby issues.");
+          }
+
+          const data = await response.json();
+
+          setNearbyReports(data.reports || []);
+        } catch (error) {
+          console.error("Nearby issues error:", error);
+          setNearbyError(
+            "We couldn't load nearby issues. Please try again."
+          );
+        } finally {
+          setNearbyLoading(false);
+        }
+      },
+
+      () => {
+        setNearbyError(
+          "We couldn't access your location. Please allow location access and try again."
+        );
+        setNearbyLoading(false);
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 10000
+      }
+    );
+  }
 
   return (
 
 
 
+    <>
 
 
-
-
-    <section className="hero">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      <div className="container hero-grid">
+      <section className="hero">
 
 
 
@@ -1098,7 +1136,7 @@ function Home() {
 
 
 
-        <div className="hero-copy">
+        <div className="container hero-grid">
 
 
 
@@ -1114,7 +1152,7 @@ function Home() {
 
 
 
-          <div className="eyebrow">
+          <div className="hero-copy">
 
 
 
@@ -1122,7 +1160,236 @@ function Home() {
 
 
 
-            <span className="status-dot" /> Community infrastructure
+
+
+
+
+
+
+
+
+            <div className="eyebrow">
+
+
+
+
+
+
+
+              <span className="status-dot" /> Community infrastructure
+
+
+
+
+
+
+
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <h1>
+
+
+
+
+
+
+
+              Report a problem.
+
+
+
+
+
+
+
+              <br />
+
+
+
+
+
+
+
+              <span>Help fix your city.</span>
+
+
+
+
+
+
+
+            </h1>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <p>
+
+
+
+
+
+
+
+              Fix My Street makes it easy for residents to report
+
+
+
+
+
+
+
+              infrastructure problems and follow what happens next.
+
+
+
+
+
+
+
+            </p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            <div className="hero-actions">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              <Link className="button button-primary" to="/report">
+
+
+
+
+
+
+
+                Report a Problem <span aria-hidden="true"></span>
+
+
+
+
+
+
+
+              </Link>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              <Link className="hero-track-link" to="/track">
+
+
+
+
+
+
+
+                Track a Report <span aria-hidden="true"></span>
+
+
+
+
+
+
+
+              </Link>
+
+
+              <button
+                type="button"
+                className="hero-track-link nearby-link"
+                onClick={findNearbyIssues}
+                disabled={nearbyLoading}
+              >
+                <span className="nearby-button-icon"></span>
+                {nearbyLoading
+                  ? "Finding nearby issues…"
+                  : "Issues Near You"}
+                   {!nearbyLoading && (
+    <span aria-hidden="true"></span>
+  )}
+              </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            </div>
+
+
+
+
+
 
 
 
@@ -1146,7 +1413,6 @@ function Home() {
 
 
 
-          <h1>
 
 
 
@@ -1154,15 +1420,14 @@ function Home() {
 
 
 
-            Report a problem.
 
+          <div className="hero-card">
 
 
 
 
 
 
-            <br />
 
 
 
@@ -1170,17 +1435,17 @@ function Home() {
 
 
 
-            <span>Help fix your city.</span>
 
 
+            <div className="card-top">
 
 
 
 
 
-          </h1>
 
 
+              <span className="mini-label">FIX MY STREET</span>
 
 
 
@@ -1194,33 +1459,33 @@ function Home() {
 
 
 
-          <p>
 
 
+              <span className="live-pill">
 
 
 
 
 
-            Fix My Street makes it easy for residents to report
 
 
+                <span /> LIVE
 
 
 
 
 
-            infrastructure problems and follow what happens next.
 
 
+              </span>
 
 
 
 
 
-          </p>
 
 
+            </div>
 
 
 
@@ -1234,9 +1499,9 @@ function Home() {
 
 
 
-          <div className="hero-actions">
 
 
+            <div className="issue-preview">
 
 
 
@@ -1250,15 +1515,14 @@ function Home() {
 
 
 
-            <Link className="button button-primary" to="/report">
 
 
+              <div className="issue-icon">🕳️</div>
 
 
 
 
 
-              Report a Problem <span aria-hidden="true">→</span>
 
 
 
@@ -1266,10 +1530,10 @@ function Home() {
 
 
 
-            </Link>
 
 
 
+              <div>
 
 
 
@@ -1277,28 +1541,28 @@ function Home() {
 
 
 
+                <strong>Road issue reported</strong>
 
 
 
 
 
-            <Link className="hero-track-link" to="/track">
 
 
+                <p>Report CF-1042</p>
 
 
 
 
 
-              Track a Report <span aria-hidden="true">→</span>
 
 
+              </div>
 
 
 
 
 
-            </Link>
 
 
 
@@ -1309,12 +1573,12 @@ function Home() {
 
 
 
+            </div>
 
 
 
 
 
-          </div>
 
 
 
@@ -1325,12 +1589,12 @@ function Home() {
 
 
 
+            <div className="progress-preview">
 
 
 
 
 
-          <div
 
 
 
@@ -1338,15 +1602,14 @@ function Home() {
 
 
 
-            className="trust-row"
 
 
 
+              {STATUSES.map((status, index) => (
 
 
 
 
-            aria-label="How Fix My Street works"
 
 
 
@@ -1354,15 +1617,14 @@ function Home() {
 
 
 
-          >
 
 
 
 
+                <div className="preview-step" key={status}>
 
 
 
-            <span>📍 <strong>Location</strong></span>
 
 
 
@@ -1370,28 +1632,28 @@ function Home() {
 
 
 
-            <span>📷 <strong>Photo</strong></span>
 
 
 
 
 
+                  <span
 
 
-            <span>🔎 <strong>Track status</strong></span>
 
 
 
 
 
+                    className={
 
 
-          </div>
 
 
 
 
 
+                      index <= 3
 
 
 
@@ -1399,14 +1661,15 @@ function Home() {
 
 
 
+                        ? "preview-dot done"
 
 
 
-        </div>
 
 
 
 
+                        : "preview-dot"
 
 
 
@@ -1414,6 +1677,7 @@ function Home() {
 
 
 
+                    }
 
 
 
@@ -1421,12 +1685,12 @@ function Home() {
 
 
 
+                  />
 
 
 
 
 
-        <div className="hero-card">
 
 
 
@@ -1437,12 +1701,12 @@ function Home() {
 
 
 
+                  <span>{status}</span>
 
 
 
 
 
-          <div className="card-top">
 
 
 
@@ -1450,10 +1714,10 @@ function Home() {
 
 
 
-            <span className="mini-label">FIX MY STREET</span>
 
 
 
+                </div>
 
 
 
@@ -1466,95 +1730,18 @@ function Home() {
 
 
 
-            <span className="live-pill">
 
 
 
+              ))}
 
 
 
 
-              <span /> LIVE
 
 
 
 
-
-
-
-            </span>
-
-
-
-
-
-
-
-          </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          <div className="issue-preview">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div className="issue-icon">🕳️</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            <div>
-
-
-
-
-
-
-
-              <strong>Road issue reported</strong>
-
-
-
-
-
-
-
-              <p>Report CF-1042</p>
 
 
 
@@ -1594,182 +1781,6 @@ function Home() {
 
 
 
-          <div className="progress-preview">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            {STATUSES.map((status, index) => (
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              <div className="preview-step" key={status}>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <span
-
-
-
-
-
-
-
-                  className={
-
-
-
-
-
-
-
-                    index <= 3
-
-
-
-
-
-
-
-                      ? "preview-dot done"
-
-
-
-
-
-
-
-                      : "preview-dot"
-
-
-
-
-
-
-
-                  }
-
-
-
-
-
-
-
-                />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                <span>{status}</span>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            ))}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         </div>
 
 
@@ -1786,26 +1797,109 @@ function Home() {
 
 
 
-      </div>
+      </section>
 
+      <section
+        style={{
+          padding: "50px 0",
+          background: "#ffffff"
+        }}
+      >
+        <div className="container">
 
+          <div style={{ marginBottom: "24px" }}>
+            <div className="eyebrow">
+              📍 LIVE COMMUNITY REPORTS
+            </div>
 
+            <h2 style={{ marginBottom: "8px" }}>
+              Issues Near You
+            </h2>
 
+            <p style={{ color: "#64748b" }}>
+              See infrastructure problems already reported nearby
+              before submitting another report.
+            </p>
+          </div>
 
+          {nearbyError && (
+            <div className="error-box">
+              ⚠ {nearbyError}
+            </div>
+          )}
 
+          {userLocation && nearbyReports.length === 0 && !nearbyLoading && (
+            <p>No active issues were found within 1 km.</p>
+          )}
 
+          {nearbyReports.length > 0 && userLocation && (
+            <NearbyIssuesMap
+              userLocation={userLocation}
+              reports={nearbyReports}
+            />
+          )}
 
+          {nearbyReports.length > 0 && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(250px, 1fr))",
+                gap: "16px"
+              }}
+            >
+              {nearbyReports.map((report) => (
+                <div
+                  key={report.report_id}
+                  style={{
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "14px",
+                    padding: "20px",
+                    background: "#ffffff"
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      marginBottom: "12px"
+                    }}
+                  >
+                    <strong>
+                      {formatLabel(report.category)}
+                    </strong>
 
+                    <span>
+                      {report.status}
+                    </span>
+                  </div>
 
+                  <div style={{ color: "#64748b" }}>
+                    📍 {Math.round(report.distance_meters)} m away
+                  </div>
 
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      color: "#64748b"
+                    }}
+                  >
+                    👥 {report.community_report_count}{" "}
+                    {report.community_report_count === 1
+                      ? "community report"
+                      : "community reports"}
+                  </div>
 
+                </div>
+              ))}
+            </div>
+          )}
 
+        </div>
+      </section>
 
-
-    </section>
-
-
-
+    </>
 
 
 
@@ -1872,7 +1966,84 @@ function Home() {
 
 
 
+function NearbyIssuesMap({ userLocation, reports }) {
 
+  if (!userLocation) {
+    return null;
+  }
+
+  const center = {
+    lat: Number(userLocation.lat),
+    lng: Number(userLocation.lng)
+  };
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        height: "400px",
+        borderRadius: "16px",
+        overflow: "hidden",
+        border: "1px solid #e2e8f0",
+        marginBottom: "24px"
+      }}
+    >
+      <Map
+        defaultCenter={center}
+        defaultZoom={16}
+        mapId="DEMO_MAP_ID"
+        gestureHandling="greedy"
+        style={{
+          width: "100%",
+          height: "100%"
+        }}
+      >
+
+        {/* Citizen's location */}
+        <AdvancedMarker position={center}>
+          <div
+            style={{
+              background: "#2563eb",
+              border: "3px solid white",
+              width: "18px",
+              height: "18px",
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)"
+            }}
+            title="Your location"
+          />
+        </AdvancedMarker>
+
+        {/* Nearby reported issues */}
+        {reports.map((report) => (
+          <AdvancedMarker
+            key={report.report_id}
+            position={{
+              lat: Number(report.latitude),
+              lng: Number(report.longitude)
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                border: "2px solid #0f6cbd",
+                borderRadius: "20px",
+                padding: "5px 9px",
+                fontSize: "12px",
+                fontWeight: "700",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                whiteSpace: "nowrap"
+              }}
+              title={formatLabel(report.category)}
+            >
+              {formatLabel(report.category)} · {report.community_report_count}            </div>
+          </AdvancedMarker>
+        ))}
+
+      </Map>
+    </div>
+  );
+}
 
 function GoogleMapController({ latitude, longitude }) {
 
@@ -8041,7 +8212,7 @@ function Report() {
 
 
 
-                →
+              
 
 
 
