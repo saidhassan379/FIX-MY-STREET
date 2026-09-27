@@ -876,60 +876,84 @@
         }
 
         /* Mobile login screen */
-@media (max-width: 700px) {
+        @media (max-width: 700px) {
 
-    .login-screen {
-        flex-direction: column;
-        min-height: 100vh;
-    }
+            .login-screen {
+                flex-direction: column;
+                min-height: 100vh;
+            }
 
-    .login-brand {
-        width: 100%;
-        min-height: auto;
-        padding: 24px 20px;
-    }
+            .login-brand {
+                width: 100%;
+                min-height: auto;
+                padding: 24px 20px;
+            }
 
-    .login-brand-content {
-        margin: 32px 0;
-        max-width: 100%;
-    }
+            .login-brand-content {
+                margin: 32px 0;
+                max-width: 100%;
+            }
 
-    .login-brand-content h1 {
-        font-size: 28px;
-        line-height: 1.2;
-        margin-bottom: 12px;
-    }
+            .login-brand-content h1 {
+                font-size: 28px;
+                line-height: 1.2;
+                margin-bottom: 12px;
+            }
 
-    .login-brand-content p {
-        font-size: 14px;
-        line-height: 1.5;
-    }
+            .login-brand-content p {
+                font-size: 14px;
+                line-height: 1.5;
+            }
 
-    .login-brand-footer {
-        display: none;
-    }
+            .login-brand-footer {
+                display: none;
+            }
 
-    .login-area {
-        width: 100%;
-        padding: 24px 16px;
-        align-items: flex-start;
-    }
+            .login-area {
+                width: 100%;
+                padding: 24px 16px;
+                align-items: flex-start;
+            }
 
-    .login-card {
-        width: 100%;
-        max-width: 100%;
-        padding: 24px 20px;
-        border-radius: 12px;
-    }
+            .login-card {
+                width: 100%;
+                max-width: 100%;
+                padding: 24px 20px;
+                border-radius: 12px;
+            }
 
-    .login-card h2 {
-        font-size: 23px;
-    }
+            .login-card h2 {
+                font-size: 23px;
+            }
 
-    .login-icon {
-        margin-bottom: 18px;
-    }
-}
+            .login-icon {
+                margin-bottom: 18px;
+            }
+
+            /* Mobile dashboard header */
+            .top {
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .top h1 {
+                font-size: 22px;
+                line-height: 1.2;
+            }
+
+            .employee>div:first-child,
+            .employee .avatar {
+                display: none;
+            }
+
+            .employee {
+                flex-shrink: 0;
+            }
+
+            .logout-btn {
+                white-space: nowrap;
+            }
+        }
     </style>
 
 
