@@ -1,11 +1,10 @@
+import "dotenv/config";
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import reportRoutes from "./routes/reports.js";
 import pool from "./db/pool.js";
 
-
-dotenv.config();
 
 const app = express();
 
