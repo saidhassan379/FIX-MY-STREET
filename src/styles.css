@@ -85,27 +85,13 @@ button { color: inherit; }
 nav { display: flex; gap: 4px; }
 .nav-link {
   color: #334e68;
-  padding: 12px 15px;
+  padding: 10px 15px;
   border-radius: 7px;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 14px;
 }
 .nav-link:hover { background: #f0f5fa; color: var(--primary-dark); }
 .nav-link.active { color: var(--primary-dark); background: var(--primary-soft); }
-
-.nearby-link {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font: inherit;
-  cursor: pointer;
-}
-
-.nearby-link:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
 
 .hero {
   min-height: calc(100vh - 76px);
