@@ -247,12 +247,11 @@ const upload = multer({
             ORDER BY created_at DESC
         `);
 
-            res.json({
-                success: true,
-                count: groupedReports.length,
-                radius_meters: radius,
-                reports: groupedReports
-            });
+          res.json({
+    success: true,
+    count: result.rows.length,
+    reports: result.rows
+});
 
 
 
@@ -409,7 +408,7 @@ const upload = multer({
             res.json({
                 success: true,
                 count: groupedReports.length,
-                radius_meters: radius,
+                // radius_meters: radius,
                 reports: groupedReports
             });
         } catch (error) {
