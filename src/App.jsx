@@ -1078,10 +1078,9 @@ function Home() {
             lng
           });
 
-          const response = await fetch(
-            `http://localhost:5000/api/reports/nearby?lat=${lat}&lng=${lng}&radius=1000`
-          );
-
+         const response = await fetch(
+  `https://fix-my-street-api.onrender.com/api/reports/nearby?lat=${lat}&lng=${lng}&radius=1000`
+);
           if (!response.ok) {
             throw new Error("Could not load nearby issues.");
           }
