@@ -1,0 +1,15 @@
+[33m1383867[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mcivicfix-frontend-updates[m[33m, [m[1;31morigin/civicfix-frontend-updates[m[33m)[m Connect nearby issues to production API
+[33m33cf579[m[33m ([m[1;31morigin/deploy-tested[m[33m)[m Connect dashboard to deployed backend
+[33m759d53c[m[33m ([m[1;31morigin/frontend-integration[m[33m, [m[1;32mfrontend-integration[m[33m)[m Fix report loading and update dashboard branding
+[33m8a49936[m Add Auth0 security and nearby issue discovery
+[33m80b709a[m Add Issues Near You citizen dashboard
+[33m56c9d66[m[33m ([m[1;31morigin/frontend[m[33m)[m Add voice input to report description
+[33m5390f22[m Add duplicate tracking and resolution time metrics
+[33m62025eb[m Add report transparency and resolution time metrics
+[33m9f1b661[m Integrate CivicFix AI routing, safety classification, maps, and dashboard
+[33ma478069[m Add maps, safety alerts, and citizen-friendly report UI
+[33mbe4480c[m Add municipal dashboard and connect to reports API
+[33m0b55872[m Integrate citizen frontend with CivicFix backend
+[33md55f86f[m Add Fix My Street citizen frontend
+[33madfc208[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Delete .gitignore
+[33m8374b81[m Delete .postman directory
